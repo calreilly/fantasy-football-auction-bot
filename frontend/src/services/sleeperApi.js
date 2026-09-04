@@ -1,5 +1,5 @@
 /**
- * Fantasy Football Auction Draft Bot - Sleeper API Integration Service
+ * Fantasy Football Auction Draft Bot - Sleeper API Integration & Auto-Pilot Service
  */
 
 const SLEEPER_BASE_URL = 'https://api.sleeper.app/v1';
@@ -19,7 +19,7 @@ export async function getSleeperUser(username) {
 }
 
 /**
- * Fetches user leagues for specified season (defaults to 2026/2025).
+ * Fetches user leagues for specified season.
  */
 export async function getUserLeagues(userId, season = '2026') {
   try {
@@ -27,7 +27,6 @@ export async function getUserLeagues(userId, season = '2026') {
     if (!res.ok) throw new Error('Could not fetch Sleeper leagues');
     let leagues = await res.json();
     if (!leagues || leagues.length === 0) {
-      // Fallback to 2025 if 2026 leagues haven't been created yet
       const fallbackRes = await fetch(`${SLEEPER_BASE_URL}/user/${userId}/leagues/nfl/2025`);
       if (fallbackRes.ok) {
         leagues = await fallbackRes.json();
@@ -41,7 +40,7 @@ export async function getUserLeagues(userId, season = '2026') {
 }
 
 /**
- * Parses Sleeper roster_positions array to extract starting slot requirements & superflex rules.
+ * Parses Sleeper roster_positions array.
  */
 export function parseSleeperRosterRules(rosterPositions) {
   const reqs = { QB: 0, RB: 0, WR: 0, TE: 0, FLEX: 0, SUPER_FLEX: 0, K: 0, DST: 0, BN: 0 };
@@ -94,5 +93,67 @@ export async function getSleeperDraftData(draftId) {
   } catch (err) {
     console.error('Error fetching Sleeper draft data:', err);
     throw err;
+  }
+}
+
+/**
+ * Live Draft Poller: Polls Sleeper draft picks every 1.5 seconds for live sync.
+ */
+export function startLiveSleeperPolling(draftId, onPicksUpdated) {
+  if (!draftId) return null;
+
+  let lastCount = -1;
+  const intervalId = setInterval(async () => {
+    try {
+      const res = await fetch(`${SLEEPER_BASE_URL}/draft/${draftId}/picks`);
+      if (res.ok) {
+        const picks = await res.json();
+        if (picks.length !== lastCount) {
+          lastCount = picks.length;
+          onPicksUpdated(picks);
+        }
+      }
+    } catch (e) {
+      console.warn('Sleeper polling warning:', e);
+    }
+  }, 1500);
+
+  return () => clearInterval(intervalId);
+}
+
+/**
+ * Auto-Bid execution payload for Sleeper internal GraphQL API.
+ */
+export async function sendSleeperAutoBid(draftId, player, bidAmount, sleeperAuthToken) {
+  if (!sleeperAuthToken) {
+    console.log(`[Auto-Pilot Simulation]: Placed bid of $${bidAmount} on ${player.name}`);
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const response = await fetch('https://sleeper.app/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'authorization': sleeperAuthToken
+      },
+      body: JSON.stringify({
+        operationName: 'auction_bid',
+        variables: {
+          draft_id: draftId,
+          player_id: player.id,
+          bid_amount: bidAmount
+        },
+        query: `mutation auction_bid($draft_id: String!, $player_id: String!, $bid_amount: Int!) {
+          auction_bid(draft_id: $draft_id, player_id: $player_id, bid_amount: $bid_amount)
+        }`
+      })
+    });
+
+    const result = await response.json();
+    return { success: !result.errors, data: result };
+  } catch (err) {
+    console.error('Error executing Sleeper auto-bid:', err);
+    return { success: false, error: err.message };
   }
 }

@@ -11,8 +11,9 @@ import SettingsModal from "./components/SettingsModal.jsx";
 import SleeperModal from "./components/SleeperModal.jsx";
 
 import { DEFAULT_PLAYERS } from "./data/defaultPlayers.js";
-import { calculateDynamicValues, calculateInflationIndex } from "./engine/auctionEngine.js";
+import { calculateDynamicValues, calculateInflationIndex, getMaxBid } from "./engine/auctionEngine.js";
 import { getAiBidDecision, AI_PERSONALITIES } from "./engine/mockSimulator.js";
+import { sendSleeperAutoBid } from "./services/sleeperApi.js";
 
 const DEFAULT_SETTINGS = {
   totalBudget: 200,
@@ -25,6 +26,7 @@ const DEFAULT_SETTINGS = {
 export default function App() {
   const [leagueSettings, setLeagueSettings] = useState(DEFAULT_SETTINGS);
   const [mode, setMode] = useState("LIVE"); // "LIVE" or "MOCK"
+  const [autoPilot, setAutoPilot] = useState(false); // Auto-Pilot Auto-Bidding
   const [strategyKey, setStrategyKey] = useState("BALANCED"); // "BALANCED", "STARS_AND_SCRUBS", "HERO_RB", "ZERO_RB"
 
   const createTeamsList = (numTeams, totalBudget, totalSlots) => {
@@ -74,6 +76,23 @@ export default function App() {
   const activePlayerDynamic = activePlayer 
     ? dynamicPlayers.find(p => p.id === activePlayer.id) 
     : null;
+
+  // Auto-Pilot Logic: Automatically places bids for user when active player bid is below max target
+  useEffect(() => {
+    if (!autoPilot || !activePlayerDynamic || highBidderId === "team-me") return;
+
+    const myTeam = teams.find(t => t.id === "team-me");
+    const myMaxBid = myTeam ? getMaxBid(myTeam) : 0;
+    const nextBid = currentBid + 1;
+
+    if (nextBid <= activePlayerDynamic.targetBidMax && nextBid <= myMaxBid) {
+      const timer = setTimeout(() => {
+        handlePlaceBid(nextBid, "team-me");
+        sendSleeperAutoBid(leagueSettings.draftId, activePlayerDynamic, nextBid, null);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [autoPilot, activePlayerDynamic, currentBid, highBidderId]);
 
   const handleSaveSettings = (newSettings) => {
     setLeagueSettings(newSettings);
@@ -179,6 +198,8 @@ export default function App() {
       <Header
         mode={mode}
         setMode={setMode}
+        autoPilot={autoPilot}
+        setAutoPilot={setAutoPilot}
         strategyKey={strategyKey}
         setStrategyKey={setStrategyKey}
         inflationIndex={inflationIndex}
@@ -186,6 +207,15 @@ export default function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenSleeperModal={() => setIsSleeperOpen(true)}
       />
+
+      {autoPilot && (
+        <div className="glass-card pulse-active" style={{ padding: "0.6rem 1rem", marginBottom: "1rem", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.4)", display: "flex", alignItems: "center", justifyBetween: "center", gap: "0.5rem", borderRadius: "10px" }}>
+          <span style={{ fontWeight: 800, color: "#34d399", fontSize: "0.85rem" }}>🤖 AUTO-PILOT BIDDING ACTIVE:</span>
+          <span style={{ fontSize: "0.85rem", color: "#cbd5e1" }}>
+            The bot will automatically place outbids for target players up to your calculated Max Target Price.
+          </span>
+        </div>
+      )}
 
       {leagueSettings.isSuperflex && (
         <div className="glass-card" style={{ padding: "0.6rem 1rem", marginBottom: "1rem", background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", display: "flex", alignItems: "center", gap: "0.5rem", borderRadius: "10px" }}>

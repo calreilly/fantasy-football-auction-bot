@@ -1,10 +1,12 @@
 import React from 'react';
-import { Bot, RefreshCw, Settings, Zap, Play, Trophy, Users, Compass } from 'lucide-react';
+import { Bot, RefreshCw, Settings, Zap, Play, Trophy, Users, Compass, Cpu } from 'lucide-react';
 import { DRAFT_STRATEGIES } from '../engine/auctionEngine.js';
 
 export default function Header({ 
   mode, 
   setMode, 
+  autoPilot,
+  setAutoPilot,
   strategyKey,
   setStrategyKey,
   inflationIndex, 
@@ -13,9 +15,9 @@ export default function Header({
   onOpenSleeperModal 
 }) {
   const getInflationBadgeColor = (idx) => {
-    if (idx > 1.1) return 'rgba(239, 68, 68, 0.2)'; // Red - Inflated market
-    if (idx < 0.9) return 'rgba(16, 185, 129, 0.2)'; // Green - Deflated market / Bargains
-    return 'rgba(59, 130, 246, 0.2)'; // Blue - Balanced
+    if (idx > 1.1) return 'rgba(239, 68, 68, 0.2)';
+    if (idx < 0.9) return 'rgba(16, 185, 129, 0.2)';
+    return 'rgba(59, 130, 246, 0.2)';
   };
 
   const getInflationTextColor = (idx) => {
@@ -46,10 +48,33 @@ export default function Header({
               AUCTION DRAFT BOT
             </h1>
             <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.05em' }}>
-              2026 VALUATION & STRATEGY ENGINE
+              2026 VALUATION & AUTO-PILOT ENGINE
             </span>
           </div>
         </div>
+
+        {/* Auto-Pilot Toggle Button */}
+        <button
+          onClick={() => setAutoPilot(!autoPilot)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.4rem 0.85rem',
+            borderRadius: '10px',
+            border: autoPilot ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid var(--border-color)',
+            background: autoPilot ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+            color: autoPilot ? '#34d399' : '#94a3b8',
+            fontWeight: 700,
+            fontSize: '0.8rem',
+            cursor: 'pointer',
+            boxShadow: autoPilot ? '0 0 15px rgba(16, 185, 129, 0.3)' : 'none',
+            transition: 'all 0.25s'
+          }}
+        >
+          <Cpu size={16} className={autoPilot ? 'pulse-active' : ''} />
+          AUTO-PILOT: {autoPilot ? 'ENABLED' : 'DISABLED'}
+        </button>
 
         {/* Draft Strategy Philosophy Selector */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255, 255, 255, 0.03)', padding: '0.35rem 0.75rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
