@@ -21,11 +21,19 @@ export async function getSleeperUser(username) {
 /**
  * Fetches user leagues for specified season (defaults to 2026/2025).
  */
-export async function getUserLeagues(userId, season = '2025') {
+export async function getUserLeagues(userId, season = '2026') {
   try {
     const res = await fetch(`${SLEEPER_BASE_URL}/user/${userId}/leagues/nfl/${season}`);
     if (!res.ok) throw new Error('Could not fetch Sleeper leagues');
-    return await res.json();
+    let leagues = await res.json();
+    if (!leagues || leagues.length === 0) {
+      // Fallback to 2025 if 2026 leagues haven't been created yet
+      const fallbackRes = await fetch(`${SLEEPER_BASE_URL}/user/${userId}/leagues/nfl/2025`);
+      if (fallbackRes.ok) {
+        leagues = await fallbackRes.json();
+      }
+    }
+    return leagues;
   } catch (err) {
     console.error('Error fetching Sleeper leagues:', err);
     throw err;
