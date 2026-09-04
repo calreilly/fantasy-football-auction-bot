@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 
 import Header from "./components/Header.jsx";
@@ -7,12 +7,14 @@ import PlayerBoard from "./components/PlayerBoard.jsx";
 import MyRosterWidget from "./components/MyRosterWidget.jsx";
 import RivalTracker from "./components/RivalTracker.jsx";
 import NominationAdvisorWidget from "./components/NominationAdvisorWidget.jsx";
+import MockSimControls from "./components/MockSimControls.jsx";
+import DraftGradeModal from "./components/DraftGradeModal.jsx";
 import SettingsModal from "./components/SettingsModal.jsx";
 import SleeperModal from "./components/SleeperModal.jsx";
 
 import { DEFAULT_PLAYERS } from "./data/defaultPlayers.js";
 import { calculateDynamicValues, calculateInflationIndex, getMaxBid } from "./engine/auctionEngine.js";
-import { getAiBidDecision, AI_PERSONALITIES } from "./engine/mockSimulator.js";
+import { getAiBidDecision, getAiNomination, AI_PERSONALITIES } from "./engine/mockSimulator.js";
 import { sendSleeperAutoBid } from "./services/sleeperApi.js";
 
 const DEFAULT_SETTINGS = {
@@ -26,8 +28,15 @@ const DEFAULT_SETTINGS = {
 export default function App() {
   const [leagueSettings, setLeagueSettings] = useState(DEFAULT_SETTINGS);
   const [mode, setMode] = useState("LIVE"); // "LIVE" or "MOCK"
-  const [autoPilot, setAutoPilot] = useState(false); // Auto-Pilot Auto-Bidding
-  const [strategyKey, setStrategyKey] = useState("BALANCED"); // "BALANCED", "STARS_AND_SCRUBS", "HERO_RB", "ZERO_RB"
+  const [autoPilot, setAutoPilot] = useState(false);
+  const [strategyKey, setStrategyKey] = useState("BALANCED");
+
+  // Mock Sim State
+  const [simStatus, setSimStatus] = useState("IDLE"); // "IDLE", "RUNNING", "PAUSED", "FINISHED"
+  const [simSpeed, setSimSpeed] = useState(1000); // ms per step
+  const [draftLog, setDraftLog] = useState([]);
+  const [isGradesOpen, setIsGradesOpen] = useState(false);
+  const nomTurnIndexRef = useRef(0);
 
   const createTeamsList = (numTeams, totalBudget, totalSlots) => {
     const arr = [];
@@ -69,7 +78,6 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSleeperOpen, setIsSleeperOpen] = useState(false);
 
-  // Calculate dynamic valuation taking into account inflation, superflex, & draft strategy
   const dynamicPlayers = calculateDynamicValues(players, teams, "team-me", leagueSettings, strategyKey);
   const inflationIndex = calculateInflationIndex(players, teams, leagueSettings);
 
@@ -77,7 +85,7 @@ export default function App() {
     ? dynamicPlayers.find(p => p.id === activePlayer.id) 
     : null;
 
-  // Auto-Pilot Logic: Automatically places bids for user when active player bid is below max target
+  // Auto-Pilot Logic
   useEffect(() => {
     if (!autoPilot || !activePlayerDynamic || highBidderId === "team-me") return;
 
@@ -93,6 +101,105 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [autoPilot, activePlayerDynamic, currentBid, highBidderId]);
+
+  // Automated Mock Sim Loop
+  useEffect(() => {
+    if (mode !== "MOCK" || simStatus !== "RUNNING") return;
+
+    const timer = setTimeout(() => {
+      handleSimStep();
+    }, simSpeed);
+
+    return () => clearTimeout(timer);
+  }, [mode, simStatus, activePlayer, currentBid, highBidderId, players, teams]);
+
+  const addLog = (msg) => {
+    setDraftLog(prev => [...prev, msg]);
+  };
+
+  // Perform single AI Mock Step
+  const handleSimStep = () => {
+    const undrafted = dynamicPlayers.filter(p => !p.draftedBy);
+
+    // Check if draft is finished
+    const totalSlotsLeft = teams.reduce((sum, t) => sum + (t.totalRosterSlots - t.roster.length), 0);
+    if (undrafted.length === 0 || totalSlotsLeft === 0) {
+      setSimStatus("FINISHED");
+      addLog("🎉 Mock Draft Completed! All teams full.");
+      setIsGradesOpen(true);
+      return;
+    }
+
+    // Step A: If no active player, handle next nomination
+    if (!activePlayer) {
+      const nomTeamIndex = nomTurnIndexRef.current % teams.length;
+      const nomTeam = teams[nomTeamIndex];
+      nomTurnIndexRef.current++;
+
+      if (nomTeam.id === "team-me") {
+        // User's turn to nominate in mock
+        const rec = undrafted[0];
+        if (rec) {
+          handleNominatePlayer(rec);
+          addLog(`My Team nominated ${rec.name} (${rec.pos}) for $1`);
+        }
+      } else {
+        // AI team nominates
+        const aiPlayer = getAiNomination(nomTeam, undrafted, leagueSettings);
+        if (aiPlayer) {
+          setActivePlayer(aiPlayer);
+          setCurrentBid(1);
+          setHighBidderId(nomTeam.id);
+          addLog(`${nomTeam.name} nominated ${aiPlayer.name} (${aiPlayer.pos}) for $1`);
+        }
+      }
+      return;
+    }
+
+    // Step B: Outbid check for all AI teams
+    for (const team of teams) {
+      if (team.id === highBidderId) continue;
+      if (team.id === "team-me" && !autoPilot) continue;
+
+      const wantsToBid = getAiBidDecision(team, activePlayerDynamic, currentBid, highBidderId, leagueSettings);
+      if (wantsToBid) {
+        const nextBid = currentBid + 1;
+        setCurrentBid(nextBid);
+        setHighBidderId(team.id);
+        addLog(`${team.name} bid $${nextBid} on ${activePlayerDynamic.name}`);
+        return;
+      }
+    }
+
+    // Step C: If no further outbids, finalize pick
+    const winningTeam = teams.find(t => t.id === highBidderId) || teams[0];
+    addLog(`SOLD! ${activePlayerDynamic.name} to ${winningTeam.name} for $${currentBid}`);
+    handleCompletePick(activePlayerDynamic.id, winningTeam.id, currentBid);
+  };
+
+  const handleInstantSim = () => {
+    setSimStatus("RUNNING");
+    let safeLoop = 0;
+    while (safeLoop < 300) {
+      safeLoop++;
+      const undrafted = players.filter(p => !p.draftedBy);
+      const totalSlotsLeft = teams.reduce((sum, t) => sum + (t.totalRosterSlots - t.roster.length), 0);
+      if (undrafted.length === 0 || totalSlotsLeft === 0) break;
+
+      const nomTeamIndex = nomTurnIndexRef.current % teams.length;
+      const nomTeam = teams[nomTeamIndex];
+      nomTurnIndexRef.current++;
+
+      const p = undrafted[0];
+      if (p) {
+        const winner = teams[safeLoop % teams.length];
+        const cost = Math.max(1, p.baselineAAV || 1);
+        handleCompletePick(p.id, winner.id, cost);
+      }
+    }
+    setSimStatus("FINISHED");
+    setIsGradesOpen(true);
+  };
 
   const handleSaveSettings = (newSettings) => {
     setLeagueSettings(newSettings);
@@ -154,19 +261,6 @@ export default function App() {
     setHighBidderId(null);
   };
 
-  const handleAiStep = () => {
-    if (!activePlayer) return;
-
-    for (const team of teams) {
-      if (team.id === "team-me") continue;
-      const wantsToBid = getAiBidDecision(team, activePlayer, currentBid, highBidderId, leagueSettings);
-      if (wantsToBid) {
-        handlePlaceBid(currentBid + 1, team.id);
-        return;
-      }
-    }
-  };
-
   const handleResetDraft = () => {
     if (window.confirm("Are you sure you want to reset all draft picks and budgets?")) {
       setPlayers(DEFAULT_PLAYERS);
@@ -174,6 +268,9 @@ export default function App() {
       setActivePlayer(null);
       setCurrentBid(0);
       setHighBidderId(null);
+      setSimStatus("IDLE");
+      setDraftLog([]);
+      nomTurnIndexRef.current = 0;
     }
   };
 
@@ -208,6 +305,20 @@ export default function App() {
         onOpenSleeperModal={() => setIsSleeperOpen(true)}
       />
 
+      {mode === "MOCK" && (
+        <MockSimControls
+          simStatus={simStatus}
+          simSpeed={simSpeed}
+          setSimSpeed={setSimSpeed}
+          onStartSim={() => setSimStatus("RUNNING")}
+          onPauseSim={() => setSimStatus("PAUSED")}
+          onStepSim={handleSimStep}
+          onInstantSim={handleInstantSim}
+          draftLog={draftLog}
+          onViewGrades={() => setIsGradesOpen(true)}
+        />
+      )}
+
       {autoPilot && (
         <div className="glass-card pulse-active" style={{ padding: "0.6rem 1rem", marginBottom: "1rem", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.4)", display: "flex", alignItems: "center", justifyBetween: "center", gap: "0.5rem", borderRadius: "10px" }}>
           <span style={{ fontWeight: 800, color: "#34d399", fontSize: "0.85rem" }}>🤖 AUTO-PILOT BIDDING ACTIVE:</span>
@@ -236,7 +347,7 @@ export default function App() {
         onPlaceBid={handlePlaceBid}
         onCompletePick={handleCompletePick}
         onCancelNomination={handleCancelNomination}
-        onAiStep={handleAiStep}
+        onAiStep={handleSimStep}
       />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
@@ -272,6 +383,13 @@ export default function App() {
         </div>
 
       </div>
+
+      <DraftGradeModal
+        isOpen={isGradesOpen}
+        onClose={() => setIsGradesOpen(false)}
+        teams={teams}
+        players={players}
+      />
 
       <SettingsModal
         isOpen={isSettingsOpen}
