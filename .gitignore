@@ -1,23 +1,29 @@
-# Systems
-.DS_Store
-Thumbs.db
-
-# Node
+# Logs & Node
 node_modules/
-npm-debug.log
-yarn-error.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# Python
+# Builds
+dist/
+build/
+*.pyc
 __pycache__/
-*.py[cod]
-*.so
 
-# Environment
+# Environments
 .env
-.venv
-env/
+.env.local
 venv/
+.venv/
 
-# Antigravity/Agent
-.gemini/
-.agent/
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Data/Models
+*.pth
+*.db
+*.sqlite3
+chromadb_data/

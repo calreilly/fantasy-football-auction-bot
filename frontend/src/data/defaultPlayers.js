@@ -1,0 +1,101 @@
+// Default top fantasy football players dataset for Auction Draft Bot
+// AAV values based on standard 12-team PPR $200 budget league settings
+
+export const DEFAULT_PLAYERS = [
+  // QB
+  { id: "qb-1", name: "Josh Allen", team: "BUF", pos: "QB", posRank: "QB1", tier: 1, baselineAAV: 28, projPts: 375, bye: 12, risk: "Low", notes: "Elite ceiling with rushing TD floor." },
+  { id: "qb-2", name: "Lamar Jackson", team: "BAL", pos: "QB", posRank: "QB2", tier: 1, baselineAAV: 26, projPts: 368, bye: 14, risk: "Low", notes: "MVP dual-threat upside every week." },
+  { id: "qb-3", name: "Patrick Mahomes", team: "KC", pos: "QB", posRank: "QB3", tier: 1, baselineAAV: 23, projPts: 355, bye: 6, risk: "Low", notes: "High passing volume & elite efficiency." },
+  { id: "qb-4", name: "Jalen Hurts", team: "PHI", pos: "QB", posRank: "QB4", tier: 1, baselineAAV: 22, projPts: 352, bye: 5, risk: "Low", notes: "Tush-push rushing touchdowns cushion." },
+  { id: "qb-5", name: "C.J. Stroud", team: "HOU", pos: "QB", posRank: "QB5", tier: 2, baselineAAV: 16, projPts: 325, bye: 14, risk: "Low", notes: "Stackable offense with elite WR corps." },
+  { id: "qb-6", name: "Joe Burrow", team: "CIN", pos: "QB", posRank: "QB6", tier: 2, baselineAAV: 14, projPts: 320, bye: 12, risk: "Medium", notes: "Top 5 passing upside if fully healthy." },
+  { id: "qb-7", name: "Anthony Richardson", team: "IND", pos: "QB", posRank: "QB7", tier: 2, baselineAAV: 13, projPts: 310, bye: 14, risk: "High", notes: "Konami code rushing ceiling." },
+  { id: "qb-8", name: "Dak Prescott", team: "DAL", pos: "QB", posRank: "QB8", tier: 2, baselineAAV: 11, projPts: 305, bye: 7, risk: "Low", notes: "High pass attempts in fantasy-friendly scheme." },
+  { id: "qb-9", name: "Jordan Love", team: "GB", pos: "QB", posRank: "QB9", tier: 3, baselineAAV: 9, projPts: 295, bye: 10, risk: "Low", notes: "Surrounded by young explosive playmakers." },
+  { id: "qb-10", name: "Kyler Murray", team: "ARI", pos: "QB", posRank: "QB10", tier: 3, baselineAAV: 8, projPts: 290, bye: 11, risk: "Medium", notes: "Dual threat with Marvin Harrison Jr. stack." },
+  { id: "qb-11", name: "Brock Purdy", team: "SF", pos: "QB", posRank: "QB11", tier: 3, baselineAAV: 6, projPts: 285, bye: 9, risk: "Low", notes: "Hyper-efficient in Shanahan system." },
+  { id: "qb-12", name: "Tua Tagovailoa", team: "MIA", pos: "QB", posRank: "QB12", tier: 3, baselineAAV: 5, projPts: 278, bye: 6, risk: "Medium", notes: "Explosive offense with Hill & Waddle." },
+  { id: "qb-13", name: "Jayden Daniels", team: "WAS", pos: "QB", posRank: "QB13", tier: 3, baselineAAV: 5, projPts: 275, bye: 14, risk: "High", notes: "Dynamic rookie rushing upside." },
+  { id: "qb-14", name: "Caleb Williams", team: "CHI", pos: "QB", posRank: "QB14", tier: 4, baselineAAV: 4, projPts: 265, bye: 7, risk: "High", notes: "Loaded WR room with Allen, Moore, Odunze." },
+  { id: "qb-15", name: "Trevor Lawrence", team: "JAX", pos: "QB", posRank: "QB15", tier: 4, baselineAAV: 3, projPts: 260, bye: 12, risk: "Medium", notes: "Solid QB2 target with low draft cost." },
+
+  // RB
+  { id: "rb-1", name: "Christian McCaffrey", team: "SF", pos: "RB", posRank: "RB1", tier: 1, baselineAAV: 62, projPts: 340, bye: 9, risk: "Medium", notes: "Consensus overall #1 auction target when healthy." },
+  { id: "rb-2", name: "Breece Hall", team: "NYJ", pos: "RB", posRank: "RB2", tier: 1, baselineAAV: 52, projPts: 290, bye: 12, risk: "Low", notes: "Elite dual-threat volume monster." },
+  { id: "rb-3", name: "Bijan Robinson", team: "ATL", pos: "RB", posRank: "RB3", tier: 1, baselineAAV: 50, projPts: 285, bye: 12, risk: "Low", notes: "Unlocks massive workload in new offense." },
+  { id: "rb-4", name: "Saquon Barkley", team: "PHI", pos: "RB", posRank: "RB4", tier: 1, baselineAAV: 44, projPts: 265, bye: 5, risk: "Medium", notes: "Elite O-line upgrade in Philadelphia." },
+  { id: "rb-5", name: "Jonathan Taylor", team: "IND", pos: "RB", posRank: "RB5", tier: 1, baselineAAV: 42, projPts: 255, bye: 14, risk: "Medium", notes: "Bellcow back with massive TD upside." },
+  { id: "rb-6", name: "Jahmyr Gibbs", team: "DET", pos: "RB", posRank: "RB6", tier: 2, baselineAAV: 38, projPts: 248, bye: 5, risk: "Low", notes: "Explosive pass-catching & big-play threat." },
+  { id: "rb-7", name: "Kyren Williams", team: "LAR", pos: "RB", posRank: "RB7", tier: 2, baselineAAV: 36, projPts: 242, bye: 6, risk: "Medium", notes: "High touch volume in McVay scheme." },
+  { id: "rb-8", name: "Derrick Henry", team: "BAL", pos: "RB", posRank: "RB8", tier: 2, baselineAAV: 34, projPts: 235, bye: 14, risk: "Medium", notes: "Massive touchdown ceiling with Baltimore." },
+  { id: "rb-9", name: "Travis Etienne Jr.", team: "JAX", pos: "RB", posRank: "RB9", tier: 2, baselineAAV: 31, projPts: 230, bye: 12, risk: "Low", notes: "Reliable workhorse with receiving floor." },
+  { id: "rb-10", name: "De'Von Achane", team: "MIA", pos: "RB", posRank: "RB10", tier: 2, baselineAAV: 30, projPts: 225, bye: 6, risk: "High", notes: "Historic efficiency & game-breaking speed." },
+  { id: "rb-11", name: "Isiah Pacheco", team: "KC", pos: "RB", posRank: "RB11", tier: 3, baselineAAV: 26, projPts: 215, bye: 6, risk: "Low", notes: "Hard-nosed lead back for Mahomes." },
+  { id: "rb-12", name: "Josh Jacobs", team: "GB", pos: "RB", posRank: "RB12", tier: 3, baselineAAV: 25, projPts: 210, bye: 10, risk: "Medium", notes: "Fresh start in Green Bay high-scoring team." },
+  { id: "rb-13", name: "Rachaad White", team: "TB", pos: "RB", posRank: "RB13", tier: 3, baselineAAV: 22, projPts: 205, bye: 11, risk: "Low", notes: "PPR monster with heavy target volume." },
+  { id: "rb-14", name: "Joe Mixon", team: "HOU", pos: "RB", posRank: "RB14", tier: 3, baselineAAV: 21, projPts: 200, bye: 14, risk: "Medium", notes: "Clear goal line role in high-flying offense." },
+  { id: "rb-15", name: "James Cook", team: "BUF", pos: "RB", posRank: "RB15", tier: 3, baselineAAV: 20, projPts: 198, bye: 12, risk: "Low", notes: "Versatile back in Josh Allen led offense." },
+  { id: "rb-16", name: "Kenneth Walker III", team: "SEA", pos: "RB", posRank: "RB16", tier: 3, baselineAAV: 18, projPts: 192, bye: 10, risk: "Medium", notes: "Dynamic rusher under Ryan Grubb scheme." },
+  { id: "rb-17", name: "Alvin Kamara", team: "NO", pos: "RB", posRank: "RB17", tier: 3, baselineAAV: 17, projPts: 190, bye: 12, risk: "Medium", notes: "Target magnet in Klint Kubiak system." },
+  { id: "rb-18", name: "Aaron Jones", team: "MIN", pos: "RB", posRank: "RB18", tier: 4, baselineAAV: 15, projPts: 180, bye: 6, risk: "Medium", notes: "Veteran efficiency boost in Minnesota." },
+  { id: "rb-19", name: "David Montgomery", team: "DET", pos: "RB", posRank: "RB19", tier: 4, baselineAAV: 14, projPts: 175, bye: 5, risk: "Low", notes: "Goal-line hammer with safe weekly floor." },
+  { id: "rb-20", name: "D'Andre Swift", team: "CHI", pos: "RB", posRank: "RB20", tier: 4, baselineAAV: 12, projPts: 168, bye: 7, risk: "Medium", notes: "Lead back role in revitalized Bears offense." },
+  { id: "rb-21", name: "Zamir White", team: "LV", pos: "RB", posRank: "RB21", tier: 4, baselineAAV: 10, projPts: 160, bye: 10, risk: "Medium", notes: "Heavy early-down volume sleeper." },
+  { id: "rb-22", name: "Jonathon Brooks", team: "CAR", pos: "RB", posRank: "RB22", tier: 4, baselineAAV: 9, projPts: 155, bye: 11, risk: "High", notes: "Rookie upside when fully healthy." },
+  { id: "rb-23", name: "Tony Pollard", team: "TEN", pos: "RB", posRank: "RB23", tier: 4, baselineAAV: 8, projPts: 150, bye: 5, risk: "Medium", notes: "Split backfield with Tyjae Spears." },
+  { id: "rb-24", name: "Raheem Mostert", team: "MIA", pos: "RB", posRank: "RB24", tier: 4, baselineAAV: 7, projPts: 145, bye: 6, risk: "Medium", notes: "Touchdown monster in Miami." },
+
+  // WR
+  { id: "wr-1", name: "CeeDee Lamb", team: "DAL", pos: "WR", posRank: "WR1", tier: 1, baselineAAV: 58, projPts: 320, bye: 7, risk: "Low", notes: "Target hog in high-volume passing game." },
+  { id: "wr-2", name: "Tyreek Hill", team: "MIA", pos: "WR", posRank: "WR2", tier: 1, baselineAAV: 56, projPts: 315, bye: 6, risk: "Low", notes: "Game-breaking speed & 2,000-yard ceiling." },
+  { id: "wr-3", name: "Justin Jefferson", team: "MIN", pos: "WR", posRank: "WR3", tier: 1, baselineAAV: 54, projPts: 305, bye: 6, risk: "Low", notes: "QB-proof elite talent at receiver." },
+  { id: "wr-4", name: "Ja'Marr Chase", team: "CIN", pos: "WR", posRank: "WR4", tier: 1, baselineAAV: 52, projPts: 300, bye: 12, risk: "Low", notes: "Massive ceiling paired with Burrow." },
+  { id: "wr-5", name: "Amon-Ra St. Brown", team: "DET", pos: "WR", posRank: "WR5", tier: 1, baselineAAV: 49, projPts: 295, bye: 5, risk: "Low", notes: "Metronome consistency & PPR gold." },
+  { id: "wr-6", name: "A.J. Brown", team: "PHI", pos: "WR", posRank: "WR6", tier: 1, baselineAAV: 45, projPts: 275, bye: 5, risk: "Low", notes: "Alpha WR1 with dominant YAC ability." },
+  { id: "wr-7", name: "Garrett Wilson", team: "NYJ", pos: "WR", posRank: "WR7", tier: 2, baselineAAV: 38, projPts: 260, bye: 12, risk: "Low", notes: "Breakout year incoming with Aaron Rodgers." },
+  { id: "wr-8", name: "Marvin Harrison Jr.", team: "ARI", pos: "WR", posRank: "WR8", tier: 2, baselineAAV: 35, projPts: 250, bye: 11, risk: "Medium", notes: "Generational rookie wideout." },
+  { id: "wr-9", name: "Puka Nacua", team: "LAR", pos: "WR", posRank: "WR9", tier: 2, baselineAAV: 34, projPts: 248, bye: 6, risk: "Medium", notes: "Historic rookie follow-up in McVay offense." },
+  { id: "wr-10", name: "Davante Adams", team: "LV", pos: "WR", posRank: "WR10", tier: 2, baselineAAV: 32, projPts: 242, bye: 10, risk: "Medium", notes: "Elite route runner & red zone target." },
+  { id: "wr-11", name: "Drake London", team: "ATL", pos: "WR", posRank: "WR11", tier: 2, baselineAAV: 30, projPts: 238, bye: 12, risk: "Low", notes: "Major QB upgrade unlocks London breakout." },
+  { id: "wr-12", name: "Chris Olave", team: "NO", pos: "WR", posRank: "WR12", tier: 2, baselineAAV: 28, projPts: 235, bye: 12, risk: "Low", notes: "Air yards machine with top 10 potential." },
+  { id: "wr-13", name: "Brandon Aiyuk", team: "SF", pos: "WR", posRank: "WR13", tier: 2, baselineAAV: 27, projPts: 232, bye: 9, risk: "Low", notes: "Hyper-efficient route technician." },
+  { id: "wr-14", name: "Nico Collins", team: "HOU", pos: "WR", posRank: "WR14", tier: 2, baselineAAV: 26, projPts: 230, bye: 14, risk: "Low", notes: "Stroud's go-to explosive deep threat." },
+  { id: "wr-15", name: "Mike Evans", team: "TB", pos: "WR", posRank: "WR15", tier: 3, baselineAAV: 24, projPts: 225, bye: 11, risk: "Low", notes: "10+ straight 1,000-yard seasons." },
+  { id: "wr-16", name: "Deebo Samuel", team: "SF", pos: "WR", posRank: "WR16", tier: 3, baselineAAV: 23, projPts: 220, bye: 9, risk: "Medium", notes: "Dual rushing & receiving weapon." },
+  { id: "wr-17", name: "DK Metcalf", team: "SEA", pos: "WR", posRank: "WR17", tier: 3, baselineAAV: 21, projPts: 215, bye: 10, risk: "Low", notes: "Physical anomaly with high TD upside." },
+  { id: "wr-18", name: "Michael Pittman Jr.", team: "IND", pos: "WR", posRank: "WR18", tier: 3, baselineAAV: 20, projPts: 212, bye: 14, risk: "Low", notes: "Target monster with safe PPR floor." },
+  { id: "wr-19", name: "Stefon Diggs", team: "HOU", pos: "WR", posRank: "WR19", tier: 3, baselineAAV: 19, projPts: 208, bye: 14, risk: "Medium", notes: "Veteran route runner joins Texans stack." },
+  { id: "wr-20", name: "Malik Nabers", team: "NYG", pos: "WR", posRank: "WR20", tier: 3, baselineAAV: 18, projPts: 205, bye: 11, risk: "High", notes: "Electric rookie skill set." },
+  { id: "wr-21", name: "Amari Cooper", team: "CLE", pos: "WR", posRank: "WR21", tier: 3, baselineAAV: 16, projPts: 198, bye: 10, risk: "Medium", notes: "Proven WR1 volume when healthy." },
+  { id: "wr-22", name: "Devonta Smith", team: "PHI", pos: "WR", posRank: "WR22", tier: 3, baselineAAV: 15, projPts: 195, bye: 5, risk: "Low", notes: "Elite WR2 in high-powered Eagles offense." },
+  { id: "wr-23", name: "Tee Higgins", team: "CIN", pos: "WR", posRank: "WR23", tier: 3, baselineAAV: 14, projPts: 190, bye: 12, risk: "Medium", notes: "Contract year upside paired with Burrow." },
+  { id: "wr-24", name: "George Pickens", team: "PIT", pos: "WR", posRank: "WR24", tier: 4, baselineAAV: 12, projPts: 182, bye: 9, risk: "Medium", notes: "Uncontested WR1 target share in Pittsburgh." },
+
+  // TE
+  { id: "te-1", name: "Travis Kelce", team: "KC", pos: "TE", posRank: "TE1", tier: 1, baselineAAV: 32, projPts: 230, bye: 6, risk: "Low", notes: "The gold standard at tight end." },
+  { id: "te-2", name: "Sam LaPorta", team: "DET", pos: "TE", posRank: "TE2", tier: 1, baselineAAV: 30, projPts: 225, bye: 5, risk: "Low", notes: "Record-setting rookie TE building on Year 2." },
+  { id: "te-3", name: "Trey McBride", team: "ARI", pos: "TE", posRank: "TE3", tier: 1, baselineAAV: 24, projPts: 210, bye: 11, risk: "Low", notes: "Target vacuum with Kyler Murray." },
+  { id: "te-4", name: "Mark Andrews", team: "BAL", pos: "TE", posRank: "TE4", tier: 1, baselineAAV: 22, projPts: 205, bye: 14, risk: "Medium", notes: "Lamar's primary red-zone threat." },
+  { id: "te-5", name: "Dalton Kincaid", team: "BUF", pos: "TE", posRank: "TE5", tier: 2, baselineAAV: 18, projPts: 195, bye: 12, risk: "Low", notes: "Slot role expander in Diggs-less Bills." },
+  { id: "te-6", name: "George Kittle", team: "SF", pos: "TE", posRank: "TE6", tier: 2, baselineAAV: 17, projPts: 190, bye: 9, risk: "Medium", notes: "Boom-or-bust slate winner." },
+  { id: "te-7", name: "Kyle Pitts", team: "ATL", pos: "TE", posRank: "TE7", tier: 2, baselineAAV: 14, projPts: 180, bye: 12, risk: "High", notes: "Kirk Cousins QB upgrade unlocks ceiling." },
+  { id: "te-8", name: "Evan Engram", team: "JAX", pos: "TE", posRank: "TE8", tier: 2, baselineAAV: 13, projPts: 178, bye: 12, risk: "Low", notes: "PPR machine with 100+ target projection." },
+  { id: "te-9", name: "Jake Ferguson", team: "DAL", pos: "TE", posRank: "TE9", tier: 3, baselineAAV: 8, projPts: 165, bye: 7, risk: "Low", notes: "Dak's favorite middle-of-field target." },
+  { id: "te-10", name: "Brock Bowers", team: "LV", pos: "TE", posRank: "TE10", tier: 3, baselineAAV: 7, projPts: 160, bye: 10, risk: "High", notes: "Elite TE prospect versatile weapon." },
+
+  // K
+  { id: "k-1", name: "Justin Tucker", team: "BAL", pos: "K", posRank: "K1", tier: 1, baselineAAV: 2, projPts: 145, bye: 14, risk: "Low", notes: "Premier fantasy kicker on elite offense." },
+  { id: "k-2", name: "Harrison Butker", team: "KC", pos: "K", posRank: "K2", tier: 1, baselineAAV: 2, projPts: 142, bye: 6, risk: "Low", notes: "Consistent field goal opportunist in KC." },
+  { id: "k-3", name: "Brandon Aubrey", team: "DAL", pos: "K", posRank: "K3", tier: 1, baselineAAV: 2, projPts: 140, bye: 7, risk: "Low", notes: "50+ yard leg monster." },
+  { id: "k-4", name: "Jake Elliott", team: "PHI", pos: "K", posRank: "K4", tier: 2, baselineAAV: 1, projPts: 135, bye: 5, risk: "Low", notes: "Reliable floor on Eagles high scorer." },
+  { id: "k-5", name: "Evan McPherson", team: "CIN", pos: "K", posRank: "K5", tier: 2, baselineAAV: 1, projPts: 132, bye: 12, risk: "Low", notes: "Clutch kicker with Burrow back." },
+
+  // DST
+  { id: "dst-1", name: "San Francisco 49ers", team: "SF", pos: "DST", posRank: "DST1", tier: 1, baselineAAV: 2, projPts: 125, bye: 9, risk: "Low", notes: "Elite pass rush & turnover creation." },
+  { id: "dst-2", name: "Baltimore Ravens", team: "BAL", pos: "DST", posRank: "DST2", tier: 1, baselineAAV: 2, projPts: 122, bye: 14, risk: "Low", notes: "Dominant unit across all metrics." },
+  { id: "dst-3", name: "Dallas Cowboys", team: "DAL", pos: "DST", posRank: "DST3", tier: 1, baselineAAV: 2, projPts: 120, bye: 7, risk: "Low", notes: "Pick-six & sack production upside." },
+  { id: "dst-4", name: "Cleveland Browns", team: "CLE", pos: "DST", posRank: "DST4", tier: 2, baselineAAV: 1, projPts: 115, bye: 10, risk: "Low", notes: "Shutdown home defense with Myles Garrett." },
+  { id: "dst-5", name: "New York Jets", team: "NYJ", pos: "DST", posRank: "DST5", tier: 2, baselineAAV: 1, projPts: 112, bye: 12, risk: "Low", notes: "Elite secondary & lock-down corners." }
+];
+
+export const POSITIONS = ["ALL", "QB", "RB", "WR", "TE", "K", "DST"];
