@@ -25,8 +25,8 @@ const DEFAULT_SETTINGS = {
 export default function App() {
   const [leagueSettings, setLeagueSettings] = useState(DEFAULT_SETTINGS);
   const [mode, setMode] = useState("LIVE"); // "LIVE" or "MOCK"
-  
-  // Dynamic Teams setup generator
+  const [strategyKey, setStrategyKey] = useState("BALANCED"); // "BALANCED", "STARS_AND_SCRUBS", "HERO_RB", "ZERO_RB"
+
   const createTeamsList = (numTeams, totalBudget, totalSlots) => {
     const arr = [];
     arr.push({
@@ -67,27 +67,19 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSleeperOpen, setIsSleeperOpen] = useState(false);
 
-  // Calculate dynamic valuation taking into account inflation & superflex
-  const dynamicPlayers = calculateDynamicValues(players, teams, "team-me", leagueSettings);
+  // Calculate dynamic valuation taking into account inflation, superflex, & draft strategy
+  const dynamicPlayers = calculateDynamicValues(players, teams, "team-me", leagueSettings, strategyKey);
   const inflationIndex = calculateInflationIndex(players, teams, leagueSettings);
 
   const activePlayerDynamic = activePlayer 
     ? dynamicPlayers.find(p => p.id === activePlayer.id) 
     : null;
 
-  // Sync settings update to team budgets & counts
   const handleSaveSettings = (newSettings) => {
     setLeagueSettings(newSettings);
-    setTeams(prevTeams => {
-      // If team count or slots changed, regenerate teams preserving roster where possible
-      const newNum = newSettings.numTeams || 12;
-      const newBudget = newSettings.totalBudget || 200;
-      const newSlots = newSettings.totalRosterSlots || 15;
-      return createTeamsList(newNum, newBudget, newSlots);
-    });
+    setTeams(createTeamsList(newSettings.numTeams || 12, newSettings.totalBudget || 200, newSettings.totalRosterSlots || 15));
   };
 
-  // Handlers
   const handleNominatePlayer = (player) => {
     setActivePlayer(player);
     setCurrentBid(1);
@@ -109,7 +101,6 @@ export default function App() {
     const playerObj = players.find(p => p.id === playerId);
     if (!playerObj) return;
 
-    // Update teams
     setTeams(prevTeams => prevTeams.map(t => {
       if (t.id === winnerTeamId) {
         return {
@@ -122,7 +113,6 @@ export default function App() {
       return t;
     }));
 
-    // Mark player as drafted
     setPlayers(prevPlayers => prevPlayers.map(p => {
       if (p.id === playerId) {
         return { ...p, draftedBy: winnerTeamId, cost };
@@ -130,7 +120,6 @@ export default function App() {
       return p;
     }));
 
-    // Trigger celebratory confetti if user drafted player
     if (winnerTeamId === "team-me") {
       try {
         confetti({
@@ -141,13 +130,11 @@ export default function App() {
       } catch (e) {}
     }
 
-    // Clear active
     setActivePlayer(null);
     setCurrentBid(0);
     setHighBidderId(null);
   };
 
-  // Step AI rival bids in MOCK mode
   const handleAiStep = () => {
     if (!activePlayer) return;
 
@@ -192,6 +179,8 @@ export default function App() {
       <Header
         mode={mode}
         setMode={setMode}
+        strategyKey={strategyKey}
+        setStrategyKey={setStrategyKey}
         inflationIndex={inflationIndex}
         onReset={handleResetDraft}
         onOpenSettings={() => setIsSettingsOpen(true)}
@@ -202,7 +191,7 @@ export default function App() {
         <div className="glass-card" style={{ padding: "0.6rem 1rem", marginBottom: "1rem", background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", display: "flex", alignItems: "center", gap: "0.5rem", borderRadius: "10px" }}>
           <span style={{ fontWeight: 800, color: "#fbbf24", fontSize: "0.85rem" }}>⚡ SUPERFLEX FORMAT DETECTED:</span>
           <span style={{ fontSize: "0.85rem", color: "#cbd5e1" }}>
-            QB auction valuations are dynamically boosted (1.8x multiplier) for 2-QB starting setups.
+            QB auction valuations are dynamically boosted (1.85x multiplier) for 2-QB starting setups.
           </span>
         </div>
       )}

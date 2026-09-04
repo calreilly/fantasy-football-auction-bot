@@ -1,9 +1,12 @@
 import React from 'react';
-import { Bot, RefreshCw, Settings, Zap, Play, Trophy, Users } from 'lucide-react';
+import { Bot, RefreshCw, Settings, Zap, Play, Trophy, Users, Compass } from 'lucide-react';
+import { DRAFT_STRATEGIES } from '../engine/auctionEngine.js';
 
 export default function Header({ 
   mode, 
   setMode, 
+  strategyKey,
+  setStrategyKey,
   inflationIndex, 
   onReset, 
   onOpenSettings, 
@@ -43,8 +46,35 @@ export default function Header({
               AUCTION DRAFT BOT
             </h1>
             <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.05em' }}>
-              REAL-TIME VALUATION & STRATEGY ENGINE
+              2026 VALUATION & STRATEGY ENGINE
             </span>
+          </div>
+        </div>
+
+        {/* Draft Strategy Philosophy Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255, 255, 255, 0.03)', padding: '0.35rem 0.75rem', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+          <Compass size={16} color="#fbbf24" />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700 }}>DRAFT STRATEGY</span>
+            <select
+              value={strategyKey}
+              onChange={(e) => setStrategyKey(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                outline: 'none'
+              }}
+            >
+              {Object.keys(DRAFT_STRATEGIES).map(key => (
+                <option key={key} value={key} style={{ background: '#1e293b', color: '#fff' }}>
+                  {DRAFT_STRATEGIES[key].name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

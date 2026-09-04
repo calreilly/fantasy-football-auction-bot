@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Search, Filter, ArrowUpDown, DollarSign, Check, PlusCircle } from "lucide-react";
+import { Search, Filter, ArrowUpDown, DollarSign, Check, PlusCircle, Flame, AlertCircle, TrendingUp } from "lucide-react";
 import { POSITIONS } from "../data/defaultPlayers.js";
+import { getTierScarcity } from "../engine/auctionEngine.js";
 
 export default function PlayerBoard({
   players,
   onNominatePlayer,
-  onQuickDraft,
   activePlayerId
 }) {
   const [selectedPos, setSelectedPos] = useState("ALL");
@@ -13,6 +13,8 @@ export default function PlayerBoard({
   const [sortField, setSortField] = useState("dynamicValue");
   const [sortAsc, setSortAsc] = useState(false);
   const [hideDrafted, setHideDrafted] = useState(true);
+
+  const scarcity = getTierScarcity(players);
 
   // Filter logic
   const filteredPlayers = players.filter(p => {
@@ -50,6 +52,21 @@ export default function PlayerBoard({
   return (
     <div className="glass-card" style={{ padding: "1.2rem", marginBottom: "1.5rem" }}>
       
+      {/* Tier Scarcity Warnings Bar */}
+      <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+        {["QB", "RB", "WR", "TE"].map(pos => {
+          const t1Left = scarcity[pos]?.t1 || 0;
+          if (t1Left > 0 && t1Left <= 2) {
+            return (
+              <div key={pos} style={{ padding: "0.3rem 0.6rem", borderRadius: "6px", background: "rgba(244, 63, 94, 0.15)", border: "1px solid rgba(244, 63, 94, 0.3)", color: "#fb7185", fontSize: "0.7rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                <AlertCircle size={12} /> TIER 1 {pos} SCARCITY: Only {t1Left} left!
+              </div>
+            );
+          }
+          return null;
+        })}
+      </div>
+
       {/* Controls Bar */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem" }}>
         
@@ -127,6 +144,7 @@ export default function PlayerBoard({
                 DYNAMIC VAL <ArrowUpDown size={10} />
               </th>
               <th style={{ padding: "0.6rem" }}>TARGET RANGE</th>
+              <th style={{ padding: "0.6rem" }}>VALUE BADGE</th>
               <th style={{ padding: "0.6rem", textAlign: "right" }}>ACTION</th>
             </tr>
           </thead>
@@ -134,6 +152,7 @@ export default function PlayerBoard({
             {sortedPlayers.map(p => {
               const isActive = p.id === activePlayerId;
               const isDrafted = !!p.draftedBy;
+              const diff = (p.dynamicValue || 0) - (p.baselineAAV || 0);
 
               return (
                 <tr
@@ -177,6 +196,21 @@ export default function PlayerBoard({
                   {/* Target Range */}
                   <td style={{ padding: "0.6rem", fontSize: "0.8rem", color: "#34d399", fontFamily: "var(--font-mono)" }}>
                     ${p.targetBidMin} - ${p.targetBidMax}
+                  </td>
+
+                  {/* Value Badge */}
+                  <td style={{ padding: "0.6rem" }}>
+                    {diff > 0 ? (
+                      <span style={{ fontSize: "0.65rem", padding: "0.15rem 0.4rem", borderRadius: "4px", background: "rgba(16, 185, 129, 0.15)", color: "#34d399", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.2rem" }}>
+                        <Flame size={10} /> +${diff} Bargain
+                      </span>
+                    ) : diff < 0 ? (
+                      <span style={{ fontSize: "0.65rem", padding: "0.15rem 0.4rem", borderRadius: "4px", background: "rgba(239, 68, 68, 0.15)", color: "#f87171", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "0.2rem" }}>
+                        <TrendingUp size={10} /> -${Math.abs(diff)} Inflated
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: "0.65rem", color: "#64748b" }}>Fair</span>
+                    )}
                   </td>
 
                   {/* Actions */}
