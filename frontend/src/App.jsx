@@ -12,45 +12,51 @@ import SleeperModal from "./components/SleeperModal.jsx";
 
 import { DEFAULT_PLAYERS } from "./data/defaultPlayers.js";
 import { calculateDynamicValues, calculateInflationIndex } from "./engine/auctionEngine.js";
-import { getAiBidDecision, getAiNomination, AI_PERSONALITIES } from "./engine/mockSimulator.js";
+import { getAiBidDecision, AI_PERSONALITIES } from "./engine/mockSimulator.js";
 
 const DEFAULT_SETTINGS = {
   totalBudget: 200,
   numTeams: 12,
-  rosterRequirements: { QB: 1, RB: 2, WR: 2, TE: 1, K: 1, DST: 1 }
+  totalRosterSlots: 15,
+  isSuperflex: false,
+  rosterRequirements: { QB: 1, RB: 2, WR: 2, TE: 1, FLEX: 1, SUPER_FLEX: 0, K: 1, DST: 1 }
 };
 
 export default function App() {
   const [leagueSettings, setLeagueSettings] = useState(DEFAULT_SETTINGS);
   const [mode, setMode] = useState("LIVE"); // "LIVE" or "MOCK"
   
-  // Teams setup
-  const [teams, setTeams] = useState(() => {
+  // Dynamic Teams setup generator
+  const createTeamsList = (numTeams, totalBudget, totalSlots) => {
     const arr = [];
     arr.push({
       id: "team-me",
       name: "My Team (User)",
-      budget: 200,
+      budget: totalBudget,
       spent: 0,
-      totalRosterSlots: 15,
+      totalRosterSlots: totalSlots,
       roster: [],
       strategy: "USER"
     });
 
     const strategies = Object.keys(AI_PERSONALITIES);
-    for (let i = 1; i <= 11; i++) {
+    for (let i = 1; i < numTeams; i++) {
       arr.push({
         id: `team-${i}`,
         name: `Rival Manager ${i}`,
-        budget: 200,
+        budget: totalBudget,
         spent: 0,
-        totalRosterSlots: 15,
+        totalRosterSlots: totalSlots,
         roster: [],
         strategy: strategies[i % strategies.length]
       });
     }
     return arr;
-  });
+  };
+
+  const [teams, setTeams] = useState(() => 
+    createTeamsList(DEFAULT_SETTINGS.numTeams, DEFAULT_SETTINGS.totalBudget, DEFAULT_SETTINGS.totalRosterSlots)
+  );
 
   const [players, setPlayers] = useState(DEFAULT_PLAYERS);
   const [activePlayer, setActivePlayer] = useState(null);
@@ -61,13 +67,25 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSleeperOpen, setIsSleeperOpen] = useState(false);
 
-  // Calculate dynamic valuation on every state change
+  // Calculate dynamic valuation taking into account inflation & superflex
   const dynamicPlayers = calculateDynamicValues(players, teams, "team-me", leagueSettings);
   const inflationIndex = calculateInflationIndex(players, teams, leagueSettings);
 
   const activePlayerDynamic = activePlayer 
     ? dynamicPlayers.find(p => p.id === activePlayer.id) 
     : null;
+
+  // Sync settings update to team budgets & counts
+  const handleSaveSettings = (newSettings) => {
+    setLeagueSettings(newSettings);
+    setTeams(prevTeams => {
+      // If team count or slots changed, regenerate teams preserving roster where possible
+      const newNum = newSettings.numTeams || 12;
+      const newBudget = newSettings.totalBudget || 200;
+      const newSlots = newSettings.totalRosterSlots || 15;
+      return createTeamsList(newNum, newBudget, newSlots);
+    });
+  };
 
   // Handlers
   const handleNominatePlayer = (player) => {
@@ -133,7 +151,6 @@ export default function App() {
   const handleAiStep = () => {
     if (!activePlayer) return;
 
-    // Check if any AI manager wants to bid higher than currentBid
     for (const team of teams) {
       if (team.id === "team-me") continue;
       const wantsToBid = getAiBidDecision(team, activePlayer, currentBid, highBidderId, leagueSettings);
@@ -147,12 +164,7 @@ export default function App() {
   const handleResetDraft = () => {
     if (window.confirm("Are you sure you want to reset all draft picks and budgets?")) {
       setPlayers(DEFAULT_PLAYERS);
-      setTeams(prevTeams => prevTeams.map(t => ({
-        ...t,
-        budget: leagueSettings.totalBudget,
-        spent: 0,
-        roster: []
-      })));
+      setTeams(createTeamsList(leagueSettings.numTeams, leagueSettings.totalBudget, leagueSettings.totalRosterSlots));
       setActivePlayer(null);
       setCurrentBid(0);
       setHighBidderId(null);
@@ -160,11 +172,17 @@ export default function App() {
   };
 
   const handleImportSleeperLeague = (sleeperLeague) => {
-    if (sleeperLeague && sleeperLeague.total_rosters) {
-      setLeagueSettings(prev => ({
-        ...prev,
-        numTeams: sleeperLeague.total_rosters
-      }));
+    if (sleeperLeague) {
+      const updatedSettings = {
+        totalBudget: sleeperLeague.totalBudget || 200,
+        numTeams: sleeperLeague.numTeams || 12,
+        totalRosterSlots: sleeperLeague.totalRosterSlots || 15,
+        isSuperflex: sleeperLeague.isSuperflex || false,
+        rosterRequirements: sleeperLeague.rosterRequirements || DEFAULT_SETTINGS.rosterRequirements
+      };
+
+      setLeagueSettings(updatedSettings);
+      setTeams(createTeamsList(updatedSettings.numTeams, updatedSettings.totalBudget, updatedSettings.totalRosterSlots));
     }
   };
 
@@ -179,6 +197,15 @@ export default function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenSleeperModal={() => setIsSleeperOpen(true)}
       />
+
+      {leagueSettings.isSuperflex && (
+        <div className="glass-card" style={{ padding: "0.6rem 1rem", marginBottom: "1rem", background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", display: "flex", alignItems: "center", gap: "0.5rem", borderRadius: "10px" }}>
+          <span style={{ fontWeight: 800, color: "#fbbf24", fontSize: "0.85rem" }}>⚡ SUPERFLEX FORMAT DETECTED:</span>
+          <span style={{ fontSize: "0.85rem", color: "#cbd5e1" }}>
+            QB auction valuations are dynamically boosted (1.8x multiplier) for 2-QB starting setups.
+          </span>
+        </div>
+      )}
 
       <AuctionDashboard
         activePlayer={activePlayerDynamic}
@@ -231,7 +258,7 @@ export default function App() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         settings={leagueSettings}
-        onSaveSettings={setLeagueSettings}
+        onSaveSettings={handleSaveSettings}
       />
 
       <SleeperModal

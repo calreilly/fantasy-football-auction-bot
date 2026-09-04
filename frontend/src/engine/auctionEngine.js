@@ -4,9 +4,6 @@
 
 /**
  * Calculates current room inflation multiplier based on total budget remaining vs baseline value remaining.
- * @param {Array} allPlayers - Full player pool with draft status & baseline values
- * @param {Array} teams - Array of team objects with total budget & spent money
- * @param {Object} leagueSettings - League budget, roster sizes, team count
  */
 export function calculateInflationIndex(allPlayers, teams, leagueSettings) {
   const totalLeagueBudget = leagueSettings.numTeams * leagueSettings.totalBudget;
@@ -21,7 +18,7 @@ export function calculateInflationIndex(allPlayers, teams, leagueSettings) {
   
   // Sort undrafted by baseline value descending
   const sortedUndrafted = [...undraftedPlayers].sort((a, b) => (b.baselineAAV || 0) - (a.baselineAAV || 0));
-  const relevantUndrafted = sortedUndrafted.slice(0, totalEmptySlots);
+  const relevantUndrafted = sortedUndrafted.slice(0, Math.max(1, totalEmptySlots));
 
   const totalRemainingValue = relevantUndrafted.reduce((acc, p) => acc + (p.baselineAAV || 0), 0);
 
@@ -29,18 +26,18 @@ export function calculateInflationIndex(allPlayers, teams, leagueSettings) {
     return 1.0;
   }
 
-  // Inflation index > 1.0 means teams have more money left than baseline value (prices should rise)
-  // Inflation index < 1.0 means teams spent heavily early, cash is scarce (prices should fall)
   const index = remainingLeagueBudget / totalRemainingValue;
   return Math.max(0.2, Math.min(2.5, index));
 }
 
 /**
- * Calculates dynamic value for all players taking into account inflation and team needs.
+ * Calculates dynamic value for all players taking into account inflation, Superflex, and team needs.
  */
 export function calculateDynamicValues(allPlayers, teams, myTeamId, leagueSettings) {
   const inflationIndex = calculateInflationIndex(allPlayers, teams, leagueSettings);
   const myTeam = teams.find(t => t.id === myTeamId) || teams[0];
+
+  const isSuperflex = leagueSettings.isSuperflex || (leagueSettings.rosterRequirements?.SUPER_FLEX > 0);
 
   // Count positional roster needs for my team
   const myRoster = myTeam.roster || [];
@@ -58,7 +55,12 @@ export function calculateDynamicValues(allPlayers, teams, myTeamId, leagueSettin
 
   return allPlayers.map(player => {
     const isDrafted = !!player.draftedBy;
-    const baseline = player.baselineAAV || 1;
+    let baseline = player.baselineAAV || 1;
+
+    // Apply Superflex QB Multiplier
+    if (player.pos === 'QB' && isSuperflex) {
+      baseline = Math.round(baseline * 1.85);
+    }
 
     // Apply baseline inflation
     let dynamicVal = Math.round(baseline * inflationIndex);
@@ -67,13 +69,16 @@ export function calculateDynamicValues(allPlayers, teams, myTeamId, leagueSettin
     // Needs adjustment factor for user's team
     let needMultiplier = 1.0;
     const currentPosCount = posCounts[player.pos] || 0;
-    const reqPosCount = leagueSettings.rosterRequirements[player.pos] || 1;
+    let reqPosCount = leagueSettings.rosterRequirements[player.pos] || 1;
+
+    // In Superflex, effective QB requirement is QB starter count + Superflex slot
+    if (player.pos === 'QB' && isSuperflex) {
+      reqPosCount += (leagueSettings.rosterRequirements.SUPER_FLEX || 1);
+    }
 
     if (currentPosCount >= reqPosCount + 2) {
-      // Position is overcrowded
       needMultiplier = 0.5;
     } else if (currentPosCount < reqPosCount) {
-      // High positional urgency
       needMultiplier = 1.15;
     }
 
@@ -83,6 +88,7 @@ export function calculateDynamicValues(allPlayers, teams, myTeamId, leagueSettin
 
     return {
       ...player,
+      baselineAAV: baseline,
       dynamicValue: isDrafted ? player.cost : dynamicVal,
       targetBidMin: isDrafted ? player.cost : minTarget,
       targetBidMax: isDrafted ? player.cost : maxTarget,
@@ -92,7 +98,7 @@ export function calculateDynamicValues(allPlayers, teams, myTeamId, leagueSettin
 }
 
 /**
- * Calculates max bid possible for a specific team while leaving  for each remaining empty roster spot.
+ * Calculates max bid possible for a specific team while leaving $1 for each remaining empty roster spot.
  */
 export function getMaxBid(team) {
   const emptySpots = team.totalRosterSlots - team.roster.length;

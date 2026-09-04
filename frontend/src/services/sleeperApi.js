@@ -41,6 +41,42 @@ export async function getUserLeagues(userId, season = '2026') {
 }
 
 /**
+ * Parses Sleeper roster_positions array to extract starting slot requirements & superflex rules.
+ */
+export function parseSleeperRosterRules(rosterPositions) {
+  const reqs = { QB: 0, RB: 0, WR: 0, TE: 0, FLEX: 0, SUPER_FLEX: 0, K: 0, DST: 0, BN: 0 };
+  
+  if (!rosterPositions || !Array.isArray(rosterPositions)) {
+    return {
+      rosterRequirements: { QB: 1, RB: 2, WR: 2, TE: 1, FLEX: 1, SUPER_FLEX: 0, K: 1, DST: 1 },
+      totalRosterSlots: 15,
+      isSuperflex: false
+    };
+  }
+
+  rosterPositions.forEach(pos => {
+    if (pos === 'QB') reqs.QB++;
+    else if (pos === 'RB') reqs.RB++;
+    else if (pos === 'WR') reqs.WR++;
+    else if (pos === 'TE') reqs.TE++;
+    else if (pos === 'FLEX' || pos === 'WRRB_FLEX') reqs.FLEX++;
+    else if (pos === 'SUPER_FLEX' || pos === 'REC_FLEX') reqs.SUPER_FLEX++;
+    else if (pos === 'K') reqs.K++;
+    else if (pos === 'DEF' || pos === 'DST') reqs.DST++;
+    else reqs.BN++;
+  });
+
+  const isSuperflex = reqs.SUPER_FLEX > 0 || reqs.QB >= 2;
+  const totalRosterSlots = rosterPositions.length;
+
+  return {
+    rosterRequirements: reqs,
+    totalRosterSlots,
+    isSuperflex
+  };
+}
+
+/**
  * Fetches draft settings & draft picks for a specific draft ID.
  */
 export async function getSleeperDraftData(draftId) {
